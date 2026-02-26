@@ -1,0 +1,19 @@
+{
+  "name": "backend_neueheimat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "express": "^4.22.1",
+    "mongoose": "^8.3.3",
+    "mongoose-unique-validator": "^5.0.0",
+    "next": "^14.2.3"
+  }
+}

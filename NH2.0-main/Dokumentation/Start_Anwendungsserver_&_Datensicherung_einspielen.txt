@@ -1,0 +1,20 @@
+1. NH2.0 ordner in C:/Programme ablegen
+
+
+3. CMD starten und zum Ordner NH2.0 navigieren und folgende Befehle ausführen:
+	- npm install express
+	- npm install axios
+Die Bibliotheken express und axios müssen via npm Manager im Verzeichnis der Anwendung stets installiert werden. Dieser Vorgang ist einmalig, vorausgesetzt die Anwendung wird an einen anderen Ort umgezogen. 
+	
+3.1 CMD schließen.
+
+Anwendungsserver manuell starten. Dies wird in zukunft durch einen automatischen Flow ersetzt. 
+4. Weitere CMD starten, zum Ordner NH2.0 navigieren, und folgenden Befehl eintippen: 
+	- node index.js (Bitte die Konsole offen lassen. Sollte die Konsole geschlossen werden, kann mit der Datenbank erst dann wieder kommuniziert werden, wenn der node server erneut gestartet wird.)
+	
+Bisherige Datensicherungen einspielen
+
+5. Weitere CMD starten, zum Ordner NH2.0/Datenbanksicherung navigigieren, und folgende zwei Befehle eintippen um die Sicherungen vom August und September einzuspielen:
+	- node Datensicherung_August_2024.js
+	- node Datensicherung_September_2024.js
+	

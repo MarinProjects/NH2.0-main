@@ -1432,6 +1432,523 @@ router.get('/latestAdjustments', async (req, res) => {
 
 
 
+// RGO Halbjahr 1 – Anpassung
+router.post('/adjustRGOHalfYear1', async (req, res) => {
+  const {
+    terminangabe,
+    gueltigVon,
+    gueltigBis,
+    monatlicheMindestrente,
+    sollGesamtversorgungAngepasstWerden,
+    anpassungswertInPct
+  } = req.body;
+
+  try {
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+      ]
+    });
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      const yyyy = x.getFullYear();
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const dd = String(x.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const specialHalfPct = new Set([500433, 404165, 404164, 500446]);
+
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const clamp2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const calculate = ({
+      oldGesamtversorgung,
+      gesetzlicheSVRente,
+      renteAusBefrLebensvers,
+      pct,
+      sollAnpassen,
+      abschlagPct,
+      ratierlicherAnspruchPct,
+      mindestrente
+    }) => {
+      // neue Gesamtversorgung
+      const newGesamtversorgung = sollAnpassen
+        ? oldGesamtversorgung * (1 + pct / 100)
+        : oldGesamtversorgung;
+
+      // Zwischenbasis (inkl. befr. LV vor Abschlag)
+      const base = newGesamtversorgung - gesetzlicheSVRente - (renteAusBefrLebensvers || 0);
+
+      // Abschlag (Prozent)
+      const afterAbschlag = abschlagPct > 0 ? base * (1 - abschlagPct / 100) : base;
+
+      // Mindestrente greift auf "betrRente1"
+      const betrRente1 = afterAbschlag < mindestrente ? mindestrente : afterAbschlag;
+
+      // ratierlicher Anspruch
+      const betrRenteFinal =
+        ratierlicherAnspruchPct > 0 ? betrRente1 * (ratierlicherAnspruchPct / 100) : betrRente1;
+
+      return {
+        newGesamtversorgung: clamp2(newGesamtversorgung),
+        betrRenteNew: clamp2(betrRenteFinal)
+      };
+    };
+
+    let adjustedCount = 0;
+    const adjustmentDetails = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      const lastEntry = arr.length > 0 ? arr[arr.length - 1] : null;
+
+      if (!lastEntry) continue; // ohne Vorperiode keine Berechnung
+
+      // Skip: wenn bereits Eintrag mit gleichem gueltigVon existiert
+      const targetKey = toDateKey(gueltigVon);
+      const alreadyExists = arr.some(e => e?.gueltigVon && toDateKey(e.gueltigVon) === targetKey);
+      if (alreadyExists) continue;
+
+      // Prozentsatz ggf. halbieren
+      let pct = parseNum(anpassungswertInPct);
+      if (specialHalfPct.has(person.personalnummer)) pct = pct / 2;
+
+      // Abschlag & ratierlicher Anspruch aus rentenErstberechnungTeil2Daten (falls vorhanden)
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = parseNum(teil2Last?.abschlag); // z.B. 4.33
+      const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch); // z.B. 55
+
+      // Rente aus befr. LV (laut Vorgabe: aus Teil2 nehmen; fallback: lastEntry)
+      const renteAusBefrLebensvers =
+        parseNum(teil2Last?.renteAusBefrLebensvers) || parseNum(lastEntry?.renteAusBefrLebensvers);
+
+      const oldGesamtversorgung = parseNum(lastEntry?.gesamtversorgung);
+      const gesetzlicheSVRente = parseNum(lastEntry?.gesetzlicheSVRente);
+      const mindestrente = parseNum(monatlicheMindestrente);
+
+      const { newGesamtversorgung, betrRenteNew } = calculate({
+        oldGesamtversorgung,
+        gesetzlicheSVRente,
+        renteAusBefrLebensvers,
+        pct,
+        sollAnpassen: !!sollGesamtversorgungAngepasstWerden,
+        abschlagPct,
+        ratierlicherAnspruchPct,
+        mindestrente
+      });
+
+      // Neues Objekt: alles vom letzten Halbjahr übernehmen, nur relevante Felder ändern
+      const newEntry = {
+        ...lastEntry.toObject(),
+        _id: undefined, // neuer Subdoc
+        gueltigVon: new Date(gueltigVon),
+        gueltigBis: new Date(gueltigBis),
+        eingabedatum: new Date(), // Zeitpunkt Klick/Berechnung
+        gesamtversorgung: newGesamtversorgung,
+        betrRente: betrRenteNew
+      };
+
+      person.datenbzglderlaufendenRente.push(newEntry);
+      await person.save();
+
+      adjustedCount++;
+
+      adjustmentDetails.push({
+        personalnummer: person.personalnummer,
+        name: person.name || '',
+        betrRenteLastHalf: clamp2(parseNum(lastEntry?.betrRente)),
+        betrRenteNewHalf: clamp2(betrRenteNew)
+      });
+    }
+
+    res.status(200).json({
+      message: `RGO Halbjahr 1 erfolgreich berechnet für ${adjustedCount} Personen`,
+      adjustmentDetails
+    });
+  } catch (error) {
+    console.error('Error adjusting RGO HalfYear1:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+// RGO Halbjahr 1 Serienbriefe – Daten liefern
+router.post('/rgoHalfYear1Letters', async (req, res) => {
+  const {
+    terminangabe,                       // Datum im Briefkopf (z.B. 05.01.2026)
+    gueltigVon,                         // Start der neuen Periode (z.B. 01.01.2026)
+    anpassungswertInPct,                // z.B. 3.1
+    monatlicheMindestrente              // z.B. 196
+  } = req.body;
+
+  try {
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+      ]
+    });
+
+    const specialHalfPct = new Set([500433, 404165, 404164, 500446]);
+    const num = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const clamp2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const toGermanDate = (d) => {
+      const x = new Date(d);
+      const dd = String(x.getDate()).padStart(2, '0');
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const yyyy = x.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
+    };
+
+    const letters = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      if (arr.length < 2) continue;
+
+      const latest = arr[arr.length - 1];
+      const previous = arr[arr.length - 2];
+
+      // Nur Personen berücksichtigen, bei denen das neue Halbjahr bereits existiert
+      // (weil die Berechnung vorher durchgeführt wurde)
+      const latestKey = new Date(latest.gueltigVon).toISOString().slice(0, 10);
+      const targetKey = new Date(gueltigVon).toISOString().slice(0, 10);
+      if (latestKey !== targetKey) continue;
+
+      // Eingaben
+      let pct = num(anpassungswertInPct);
+      if (specialHalfPct.has(person.personalnummer)) pct = pct / 2;
+
+      const mindestrente = num(monatlicheMindestrente);
+
+      // Werte aus Vorperiode
+      const oldGesamt = num(previous.gesamtversorgung);
+      const oldGesetzliche = num(previous.gesetzlicheSVRente);
+      const oldRenteBefrLV = num(previous.renteAusBefrLebensvers);
+
+      // Teil2 Daten (Abschlag, ratierlicher Anspruch, Rente aus befr. LV ggf. dort gepflegt)
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = num(teil2Last?.abschlag); // Prozent
+      const ratierlicherPct = num(teil2Last?.ratierlicherAnspruch); // Prozent
+      const renteBefrLV = num(teil2Last?.renteAusBefrLebensvers) || oldRenteBefrLV;
+
+      // Rechenweg:
+      // neue Gesamtversorgung = alt * (1 + pct/100)
+      const newGesamt = clamp2(oldGesamt * (1 + pct / 100));
+
+      // Basis = neueGesamt - gesetzlicheSVRente - renteAusBefrLV  (wie von dir beschrieben: befr. LV vor Abschlag)
+      const basis = clamp2(newGesamt - oldGesetzliche - renteBefrLV);
+
+      // Abschlag (wenn vorhanden)
+      const nachAbschlag = abschlagPct > 0 ? clamp2(basis * (1 - abschlagPct / 100)) : basis;
+
+      // Mindestrente
+      const betrRente1 = nachAbschlag < mindestrente ? mindestrente : nachAbschlag;
+
+      // ratierlicher Anspruch
+      const betrRenteFinal =
+        ratierlicherPct > 0 ? clamp2(betrRente1 * (ratierlicherPct / 100)) : clamp2(betrRente1);
+
+      // Zur Kontrolle: sollte mit latest.betrRente übereinstimmen
+      const oldBetrRente = clamp2(num(previous.betrRente));
+      const newBetrRente = clamp2(num(latest.betrRente)); // gespeicherter Wert
+      // Optional: auf computed setzen, falls du absolut die Berechnung im Brief nutzen willst:
+      // const newBetrRente = betrRenteFinal;
+
+      letters.push({
+        personalnummer: person.personalnummer,
+        name: person.name || '',
+        adresse: person.adresse || '',
+        geburtsdatum: person.geburtsdatum ? toGermanDate(person.geburtsdatum) : '',
+        terminangabe: terminangabe ? toGermanDate(terminangabe) : toGermanDate(new Date()),
+        gueltigVon: toGermanDate(latest.gueltigVon),
+        oldDateLabel: previous.gueltigBis ? toGermanDate(previous.gueltigBis) : toGermanDate(previous.gueltigVon),
+        pctUsed: pct, // inkl. halbe Anpassung falls Spezial-PNR
+
+        // Werte für Tabelle
+        oldGesamt,
+        newGesamt,
+        oldGesetzliche,
+        renteBefrLV,
+        basis,
+        abschlagPct,
+        nachAbschlag,
+        mindestrente,
+        ratierlicherPct,
+        oldBetrRente,
+        newBetrRente
+      });
+    }
+
+    res.status(200).json({ letters, count: letters.length });
+  } catch (error) {
+    console.error('Error building RGO HalfYear1 letters:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// RGO Halbjahr 2 – Anpassung (gesetzliche SV-Rente wird erhöht, Gesamtversorgung bleibt gleich)
+router.post('/adjustRGOHalfYear2', async (req, res) => {
+  const {
+    terminangabe,
+    gueltigVon,
+    gueltigBis,
+    monatlicheMindestrente,
+    sollGesetzlicheRenteAngepasstWerden,
+    anpassungswertInPct
+  } = req.body;
+
+  try {
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+      ]
+    });
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      const yyyy = x.getFullYear();
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const dd = String(x.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const specialHalfPct = new Set([500433, 404165, 404164, 500446]);
+
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const clamp2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const calculate = ({
+      gesamtversorgungOld,
+      gesetzlicheSVRenteOld,
+      renteAusBefrLebensvers,
+      pct,
+      sollSVAnpassen,
+      abschlagPct,
+      ratierlicherAnspruchPct,
+      mindestrente
+    }) => {
+      // 1) Gesamtversorgung bleibt gleich
+      const gesamtversorgungNew = gesamtversorgungOld;
+
+      // 2) gesetzliche SV-Rente wird erhöht (wenn gewünscht)
+      const gesetzlicheSVRenteNew = sollSVAnpassen
+        ? gesetzlicheSVRenteOld * (1 + pct / 100)
+        : gesetzlicheSVRenteOld;
+
+      // 3) Basis: GV - gesetzl. SV - befr. LV (vor Abschlag)
+      const base =
+        gesamtversorgungNew - gesetzlicheSVRenteNew - (renteAusBefrLebensvers || 0);
+
+      // 4) Abschlag (Prozent)
+      const afterAbschlag = abschlagPct > 0 ? base * (1 - abschlagPct / 100) : base;
+
+      // 5) Mindestrente greift auf "betrRente1"
+      const betrRente1 = afterAbschlag < mindestrente ? mindestrente : afterAbschlag;
+
+      // 6) ratierlicher Anspruch (unverfallbarer Anspruch)
+      const betrRenteFinal =
+        ratierlicherAnspruchPct > 0
+          ? betrRente1 * (ratierlicherAnspruchPct / 100)
+          : betrRente1;
+
+      return {
+        gesetzlicheSVRenteNew: clamp2(gesetzlicheSVRenteNew),
+        gesamtversorgungNew: clamp2(gesamtversorgungNew),
+        betrRenteNew: clamp2(betrRenteFinal)
+      };
+    };
+
+    let adjustedCount = 0;
+    const adjustmentDetails = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      const lastEntry = arr.length > 0 ? arr[arr.length - 1] : null;
+      if (!lastEntry) continue;
+
+      // Skip: wenn bereits Eintrag mit gleichem gueltigVon existiert
+      const targetKey = toDateKey(gueltigVon);
+      const alreadyExists = arr.some(e => e?.gueltigVon && toDateKey(e.gueltigVon) === targetKey);
+      if (alreadyExists) continue;
+
+      // Prozentsatz ggf. halbieren (Sonderfälle)
+      let pct = parseNum(anpassungswertInPct);
+      if (specialHalfPct.has(person.personalnummer)) pct = pct / 2;
+
+      // Teil2-Daten (Abschlag / ratierlicher Anspruch / Rente aus befr. LV)
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = parseNum(teil2Last?.abschlag);
+      const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch);
+
+      const renteAusBefrLebensvers =
+        parseNum(teil2Last?.renteAusBefrLebensvers) || parseNum(lastEntry?.renteAusBefrLebensvers);
+
+      const gesamtversorgungOld = parseNum(lastEntry?.gesamtversorgung);
+      const gesetzlicheSVRenteOld = parseNum(lastEntry?.gesetzlicheSVRente);
+      const mindestrente = parseNum(monatlicheMindestrente);
+
+      const { gesetzlicheSVRenteNew, gesamtversorgungNew, betrRenteNew } = calculate({
+        gesamtversorgungOld,
+        gesetzlicheSVRenteOld,
+        renteAusBefrLebensvers,
+        pct,
+        sollSVAnpassen: !!sollGesetzlicheRenteAngepasstWerden,
+        abschlagPct,
+        ratierlicherAnspruchPct,
+        mindestrente
+      });
+
+      const newEntry = {
+        ...lastEntry.toObject(),
+        _id: undefined,
+        gueltigVon: new Date(gueltigVon),
+        gueltigBis: new Date(gueltigBis),
+        eingabedatum: new Date(),
+        gesamtversorgung: gesamtversorgungNew,
+        gesetzlicheSVRente: gesetzlicheSVRenteNew,
+        betrRente: betrRenteNew
+      };
+
+      person.datenbzglderlaufendenRente.push(newEntry);
+      await person.save();
+
+      adjustedCount++;
+
+      adjustmentDetails.push({
+        personalnummer: person.personalnummer,
+        name: person.name || '',
+        gesetzlicheSVRenteLastHalf: clamp2(parseNum(lastEntry?.gesetzlicheSVRente)),
+        gesetzlicheSVRenteNewHalf: clamp2(gesetzlicheSVRenteNew),
+        betrRenteLastHalf: clamp2(parseNum(lastEntry?.betrRente)),
+        betrRenteNewHalf: clamp2(betrRenteNew)
+      });
+    }
+
+    res.status(200).json({
+      message: `RGO Halbjahr 2 erfolgreich berechnet für ${adjustedCount} Personen`,
+      adjustmentDetails
+    });
+  } catch (error) {
+    console.error('Error adjusting RGO HalfYear2:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// GET: Daten für RGO Halbjahr 2 Serienbriefe (nur Personen mit VO 72/73/79)
+// Liefert pro Person die 2 letzten Einträge aus datenbzglderlaufendenRente,
+// aber NUR wenn der letzte Eintrag gueltigVon = requested gueltigVon hat.
+router.get('/rgoHalfYear2LetterData', async (req, res) => {
+  try {
+    const { gueltigVon } = req.query; // erwartet YYYY-MM-DD
+
+    if (!gueltigVon) {
+      return res.status(400).json({ error: 'gueltigVon query parameter is required (YYYY-MM-DD).' });
+    }
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      const yyyy = x.getFullYear();
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const dd = String(x.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const targetKey = toDateKey(gueltigVon);
+
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+      ]
+    });
+
+    const result = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      if (arr.length < 2) continue;
+
+      const last = arr[arr.length - 1];
+      const prev = arr[arr.length - 2];
+
+      if (!last?.gueltigVon) continue;
+
+      // NUR wenn letzter Eintrag genau dieses Halbjahr ist
+      if (toDateKey(last.gueltigVon) !== targetKey) continue;
+
+      // Teil2 (Abschlag / ratierlicher Anspruch / ggf. renteAusBefrLebensvers)
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      result.push({
+        personalnummer: person.personalnummer,
+        name: person.name,
+        adresse: person.adresse,
+        geschlecht: person.geschlecht,
+        geburtsdatum: person.geburtsdatum,
+        gesellschaft: person.gesellschaft,
+        versorgungsordnung: person.versorgungsordnung,
+        teil2: teil2Last ? {
+          abschlag: teil2Last.abschlag,
+          ratierlicherAnspruch: teil2Last.ratierlicherAnspruch,
+          renteAusBefrLebensvers: teil2Last.renteAusBefrLebensvers
+        } : null,
+        periods: [
+          // Neueste zuerst:
+          last,
+          prev
+        ]
+      });
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Error in rgoHalfYear2LetterData:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
   
 

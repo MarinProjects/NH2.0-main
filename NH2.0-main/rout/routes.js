@@ -1936,6 +1936,36 @@ router.get('/rgoHalfYear2LetterData', async (req, res) => {
 
 
 
+// Solvenius übergabe 
+
+// Übergabe an Solvenius
+router.get('/solveniusExport', async (req, res) => {
+  try {
+    const persons = await Person.find({});
+
+    const exportData = persons
+      .map(person => {
+        const rentenArray = person.datenbzglderlaufendenRente || [];
+        const latestEntry =
+          rentenArray.length > 0 ? rentenArray[rentenArray.length - 1] : null;
+
+        return {
+          personalnummer: person.personalnummer || '',
+          name: person.name || '',
+          aktuelleRente: latestEntry?.betrRente ?? 0
+        };
+      })
+      .filter(p => p.personalnummer !== '');
+
+    res.status(200).json(exportData);
+  } catch (error) {
+    console.error('Error creating Solvenius export:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 
 
 

@@ -1,0 +1,28 @@
+Schritt 2: 
+
+Auf der VM, Poweshell als Admin öffnen und ordner erstellen:
+	mkdir C:\actions-runner
+	
+In den Ordner wechseln  cd C:\actions-runner
+Befehle angeben :
+
+Invoke-WebRequest -Uri https://github.com/actions/runner/releases/download/v2.332.0/actions-runner-win-x64-2.332.0.zip -OutFile actions-runner-win-x64-2.332.0.zip
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/actions-runner-win-x64-2.332.0.zip", "$PWD")
+
+./config.cmd --url https://github.com/MarinProjects/NH2.0-main --token BOK7Z7ZSPEFA67WVEMR6P5LJYBR76
+
+Config Befehl: 
+
+./config.cmd --url https://github.com/MarinProjects/NH2.0-main --token BOK7Z746RLWMWBIOUFAHKXLJYBRTC
+
+	- Fragen beantworten: 
+		○ Enter the name of the runner group (leer lassen)
+		○ Enter The name of the runner: NH-Runner
+		○ Enter any additional labels : Leer lassen
+		○ Enter Name of workflolder: _work
+
+Nicht run.cmd sindern als Dienst starten
+
+.\svc install
+.\scc start 

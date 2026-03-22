@@ -663,7 +663,8 @@ const dataToInsert = [
 },
 
 {
-  "personalnummer": 404663,
+  "personalnummer": 
+  663,
   "aktuelleStatusgruppe": "Hinterbliebene",
   "alteStatusgruppe": null,
   "name": "Magdalena Tooren-Wolff",

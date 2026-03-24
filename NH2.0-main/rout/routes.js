@@ -8,6 +8,11 @@ const Person = require("../model/person");
 var router = express.Router();
 const { response } = require('express');
 
+//Backup
+const path = require('path');
+const fs = require('fs');
+const { exec } = require('child_process');
+
 let channels = [];
 
 
@@ -1262,7 +1267,11 @@ router.post('/adjustPensions', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [71, 61, 75, 65, 76, 66, 77, 67, 78, 68, 82, 86, 90] } },
-        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+        { aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ } }
       ]
     });
 
@@ -1350,40 +1359,51 @@ router.post('/adjustPensions', async (req, res) => {
 });
 
 // Route for backing up the database
-router.get('/backupDatabase', (req, res) => {
-  const backupFileName = `Neue_Heimat_2.0_${new Date().toISOString().split('T')[0]}.gz`;
-  const backupFilePath = path.join(__dirname, '..', 'backups', backupFileName);
+// Route for backing up the database
+router.get('/backup-database', async (req, res) => {
+  try {
 
-  // Create the backups directory if it doesn't exist
-  if (!fs.existsSync(path.dirname(backupFilePath))) {
-    fs.mkdirSync(path.dirname(backupFilePath), { recursive: true });
-  }
+    // 📅 aktuelles Datum formatieren (TTMMJJJJ)
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
 
-  // Run mongodump command to create the backup
-  const command = `mongodump --uri="mongodb://127.0.0.1:27017/neue_heimat_xx" --gzip --archive=${backupFilePath}`;
+    const dateString = `${day}${month}${year}`;
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error during database backup: ${stderr}`);
-      return res.status(500).json({ error: 'Failed to create backup' });
-    }
+    // 📁 Dateiname
+    const fileName = `NeueHeimat_Sicherung_${dateString}.gz`;
 
-    // Send the backup file to the client
-    res.download(backupFilePath, backupFileName, (err) => {
-      if (err) {
-        console.error(`Error sending backup file: ${err}`);
-        res.status(500).json({ error: 'Failed to send backup file' });
+    // 📍 Speicherort (Downloads)
+    const backupPath = path.join(
+      process.env.USERPROFILE || process.env.HOME,
+      'Downloads',
+      fileName
+    );
+
+    // 🛠 mongodump Befehl
+    const command = `"C:\\Program Files\\MongoDB\\Server\\8.2\\bin\\mongodump.exe" --gzip --archive="${backupPath}"`;
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error('Backup error:', error.message);
+        return res.status(500).json({ error: error.message });
       }
 
-      // Delete the backup file after sending
-      fs.unlink(backupFilePath, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error(`Error deleting backup file: ${unlinkErr}`);
-        }
-      });
+      console.log('Backup erfolgreich:', backupPath);
+
+      // 📥 Datei an Frontend schicken (Download)
+      res.download(backupPath, fileName);
     });
-  });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
+
+
+
 
 
 
@@ -1396,7 +1416,11 @@ router.get('/latestAdjustments', async (req, res) => {
     // Find persons matching the criteria
     const persons = await Person.find({
       versorgungsordnung: { $in: validVersorgungsordnung },
-      aktuelleStatusgruppe: { $ne: 'verstorben' },
+      aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ },
     });
 
     const result = [];
@@ -1447,7 +1471,11 @@ router.post('/adjustRGOHalfYear1', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [72, 73, 79] } },
-        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+        { aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ } }
       ]
     });
 
@@ -1595,7 +1623,11 @@ router.post('/rgoHalfYear1Letters', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [72, 73, 79] } },
-        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+        { aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ } }
       ]
     });
 
@@ -1719,7 +1751,11 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [72, 73, 79] } },
-        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+        { aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ } }
       ]
     });
 
@@ -1884,7 +1920,11 @@ router.get('/rgoHalfYear2LetterData', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [72, 73, 79] } },
-        { aktuelleStatusgruppe: { $ne: 'verstorben' } }
+        { aktuelleStatusgruppe: {  $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+ } }
       ]
     });
 
@@ -1960,6 +2000,26 @@ router.get('/solveniusExport', async (req, res) => {
     res.status(200).json(exportData);
   } catch (error) {
     console.error('Error creating Solvenius export:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Nur aktive Rentner
+router.get('/active-pensioners', async (req, res) => {
+  try {
+    const persons = await Person.find({
+      aktuelleStatusgruppe: {
+        $not: {
+          $regex: '^verst',
+          $options: 'i'
+        }
+      }
+    });
+
+    res.status(200).json(persons);
+  } catch (error) {
+    console.error('Error fetching active pensioners:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

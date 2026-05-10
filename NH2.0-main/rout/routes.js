@@ -836,6 +836,32 @@ router.delete('/persons/:id', async (req, res) => {
   }
 });
 
+// Delete by personalnummer
+// Delete by Personalnummer
+router.delete('/persons/personalnummer/:personalnummer', async (req, res) => {
+  const personalnummer = Number(req.params.personalnummer);
+
+  try {
+    const deletedPerson = await Person.findOneAndDelete({ personalnummer });
+
+    if (!deletedPerson) {
+      return res.status(404).json({
+        message: 'Person not found'
+      });
+    }
+
+    res.json({
+      message: 'Person deleted successfully',
+      deletedPerson
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message
+    });
+  }
+});
+
 router.delete("/person/:personId/rentenerstberechnungteil1/:rentenErstberechnungTeil1DatenId", async (req, res) => {
   const { personId, rentenErstberechnungTeil1DatenId } = req.params;
 

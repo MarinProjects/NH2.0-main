@@ -77,11 +77,11 @@ const datenBzglDerLaufendenRenteSchema = new mongoose.Schema({
     entgeltpunkte: { type: Number, default: null },
     steuerklasse: { type: String, default: null },
     zugangsfaktor: { type: Number, default: null },
-    krankenkassenkennziffer: { type: Number, default: null },
+    krankenkassenkennziffer: { type: String, default: null },
     beitragFuerKrankenvers: { type: Number, default: null },
     rentenartfaktor: { type: Number, default: null },
     teilrentenfaktor: { type: Number, default: null },
-    anpassungsschluessel: { type: Number, default: null },
+    anpassungsschluessel: { type: String, default: null },
   });
 
 const personaldatenZumVerbliebenenAngehoerigenSchema = new mongoose.Schema({

@@ -90,6 +90,12 @@ const personaldatenZumVerbliebenenAngehoerigenSchema = new mongoose.Schema({
     prozentsatz: { type: Number, default: null },
   });
 
+const personaldatenZumVerstorbenenAnehoerigenSchema = new mongoose.Schema({
+    name: { type: String, default: null },
+    geburtsdatum: { type: Date, default: null },
+    prozentsatz: { type: Number, default: null },
+  });
+
 const personenDatenSchema = new mongoose.Schema({
     personalnummer: Number,
     aktuelleStatusgruppe: {type: String, default: null},
@@ -115,7 +121,8 @@ const personenDatenSchema = new mongoose.Schema({
     rentenErstberechnungTeil1Daten: [rentenErstberechnungTeil1Schema],
     rentenErstberechnungTeil2Daten: [rentenErstberechnungTeil2Schema],
     datenbzglderlaufendenRente: [datenBzglDerLaufendenRenteSchema],
-    personaldatenangehoeriger: [personaldatenZumVerbliebenenAngehoerigenSchema]
+    personaldatenangehoeriger: [personaldatenZumVerbliebenenAngehoerigenSchema],
+    personaldatenverstorbener: [personaldatenZumVerstorbenenAnehoerigenSchema]
   });
 
 

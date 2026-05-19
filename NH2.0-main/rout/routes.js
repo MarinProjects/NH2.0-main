@@ -207,6 +207,8 @@ router.post("/person", async (req, res, next) => {
       res.status(500).json({ error: error.message });
     }
   });
+
+ 
   
 
   //fickaaa
@@ -2052,7 +2054,269 @@ router.get('/active-pensioners', async (req, res) => {
 
 
 
+// Personaldatenzumverstorbenen
 
+
+// Personaldaten zum verstorbenen Angehörigen hinzufügen
+router.post('/person/:id/personaldatenverstorbener', async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id);
+
+    if (!person) {
+      return res.status(404).json({ message: 'Person nicht gefunden' });
+    }
+
+    const newEntry = {
+      name: req.body.name,
+      geburtsdatum: req.body.geburtsdatum,
+      prozentsatz: req.body.prozentsatz
+    };
+
+    person.personaldatenverstorbener.push(newEntry);
+    await person.save();
+
+    res.status(201).json({
+      message: 'Personaldaten zum verstorbenen Angehörigen erfolgreich hinzugefügt',
+      data: person.personaldatenverstorbener
+    });
+  } catch (error) {
+    console.error('Fehler beim Hinzufügen:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Alle Personaldaten zum verstorbenen Angehörigen einer Person abrufen
+router.get('/person/:id/personaldatenverstorbener', async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id);
+
+    if (!person) {
+      return res.status(404).json({ message: 'Person nicht gefunden' });
+    }
+
+    res.status(200).json(person.personaldatenverstorbener);
+  } catch (error) {
+    console.error('Fehler beim Abrufen:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Einen bestimmten Eintrag abrufen
+router.get('/person/:id/personaldatenverstorbener/:entryId', async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id);
+
+    if (!person) {
+      return res.status(404).json({ message: 'Person nicht gefunden' });
+    }
+
+    const entry = person.personaldatenverstorbener.id(req.params.entryId);
+
+    if (!entry) {
+      return res.status(404).json({ message: 'Eintrag nicht gefunden' });
+    }
+
+    res.status(200).json(entry);
+  } catch (error) {
+    console.error('Fehler beim Abrufen des Eintrags:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Einen bestimmten Eintrag aktualisieren
+router.put('/person/:id/personaldatenverstorbener/:entryId', async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id);
+
+    if (!person) {
+      return res.status(404).json({ message: 'Person nicht gefunden' });
+    }
+
+    const entry = person.personaldatenverstorbener.id(req.params.entryId);
+
+    if (!entry) {
+      return res.status(404).json({ message: 'Eintrag nicht gefunden' });
+    }
+
+    entry.name = req.body.name;
+    entry.geburtsdatum = req.body.geburtsdatum;
+    entry.prozentsatz = req.body.prozentsatz;
+
+    await person.save();
+
+    res.status(200).json({
+      message: 'Personaldaten zum verstorbenen Angehörigen erfolgreich aktualisiert',
+      data: entry
+    });
+  } catch (error) {
+    console.error('Fehler beim Aktualisieren:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Einen bestimmten Eintrag löschen
+router.delete('/person/:id/personaldatenverstorbener/:entryId', async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id);
+
+    if (!person) {
+      return res.status(404).json({ message: 'Person nicht gefunden' });
+    }
+
+    const entry = person.personaldatenverstorbener.id(req.params.entryId);
+
+    if (!entry) {
+      return res.status(404).json({ message: 'Eintrag nicht gefunden' });
+    }
+
+    person.personaldatenverstorbener.pull(req.params.entryId);
+    await person.save();
+
+    res.status(200).json({
+      message: 'Personaldaten zum verstorbenen Angehörigen erfolgreich gelöscht'
+    });
+  } catch (error) {
+    console.error('Fehler beim Löschen:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+// Einmalige Migration: fehlendes Array personaldatenverstorbener ergänzen
+router.post('/migrate/personaldatenverstorbener', async (req, res) => {
+  try {
+    const result = await Person.updateMany(
+      {
+        $or: [
+          { personaldatenverstorbener: { $exists: false } },
+          { personaldatenverstorbener: null }
+        ]
+      },
+      {
+        $set: { personaldatenverstorbener: [] }
+      }
+    );
+
+    res.status(200).json({
+      message: 'Migration erfolgreich durchgeführt',
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Migration Fehler:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// Statuslogik Verstorben
+
+router.post('/person/:id/markAsDeceased', async (req, res) => {
+  try {
+    const deceasedPersonId = req.params.id;
+
+    const {
+      verstorbenAm,
+      hasSurvivor,
+      survivorType, // 'ehegatte' oder 'angehoeriger'
+      survivorPersonalnummer
+    } = req.body;
+
+    const deceasedPerson = await Person.findById(deceasedPersonId);
+
+    if (!deceasedPerson) {
+      return res.status(404).json({ message: 'Verstorbene Person nicht gefunden' });
+    }
+
+    // Person als verstorben markieren
+    deceasedPerson.aktuelleStatusgruppe = 'Verstorben';
+    deceasedPerson.verstorbenAm = new Date(verstorbenAm);
+
+    // Keine hinterbliebene Person
+    if (!hasSurvivor) {
+      await deceasedPerson.save();
+
+      return res.status(200).json({
+        message: 'Person wurde als verstorben markiert. Keine hinterbliebene Person vorhanden.'
+      });
+    }
+
+    // Hinterbliebene Person suchen
+    const survivorPerson = await Person.findOne({
+      personalnummer: Number(survivorPersonalnummer)
+    });
+
+    if (!survivorPerson) {
+      return res.status(404).json({
+        message: 'Hinterbliebene Person mit dieser Personalnummer nicht gefunden'
+      });
+    }
+
+    // Rentendaten übertragen
+    survivorPerson.datenbzglderlaufendenRente =
+      deceasedPerson.datenbzglderlaufendenRente || [];
+
+    deceasedPerson.datenbzglderlaufendenRente = [];
+
+    // WICHTIG: je nach Typ korrekt beim Verstorbenen speichern
+    if (survivorType === 'ehegatte') {
+      if (!deceasedPerson.ehegattenDaten) {
+        deceasedPerson.ehegattenDaten = [];
+      }
+
+      deceasedPerson.ehegattenDaten.push({
+        name: survivorPerson.name,
+        geburtsdatum: survivorPerson.geburtsdatum || null,
+        prozentsatzWitwenWitwerrente: null
+      });
+
+    } else if (survivorType === 'angehoeriger') {
+      if (!deceasedPerson.personaldatenangehoeriger) {
+        deceasedPerson.personaldatenangehoeriger = [];
+      }
+
+      deceasedPerson.personaldatenangehoeriger.push({
+        name: survivorPerson.name,
+        geburtsdatum: survivorPerson.geburtsdatum || null,
+        prozentsatz: null
+      });
+
+    } else {
+      return res.status(400).json({
+        message: 'Ungültiger Typ der hinterbliebenen Person'
+      });
+    }
+
+    // Beim Hinterbliebenen: verstorbene Person speichern
+    if (!survivorPerson.personaldatenverstorbener) {
+      survivorPerson.personaldatenverstorbener = [];
+    }
+
+    survivorPerson.personaldatenverstorbener.push({
+      name: deceasedPerson.name,
+      geburtsdatum: deceasedPerson.geburtsdatum || null,
+      prozentsatz: null
+    });
+
+    await survivorPerson.save();
+    await deceasedPerson.save();
+
+    res.status(200).json({
+      message:
+        survivorType === 'ehegatte'
+          ? 'Person wurde als verstorben markiert. Ehegatte wurde hinterlegt und Rentendaten wurden übertragen.'
+          : 'Person wurde als verstorben markiert. Angehörige Person wurde hinterlegt und Rentendaten wurden übertragen.'
+    });
+
+  } catch (error) {
+    console.error('Fehler beim Markieren als verstorben:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 

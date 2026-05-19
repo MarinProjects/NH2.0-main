@@ -447,3 +447,4 @@ const dataToInsert = [
     
     
     // Call the function to inse
+    insertData();

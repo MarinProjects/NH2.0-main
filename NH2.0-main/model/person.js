@@ -81,7 +81,7 @@ const datenBzglDerLaufendenRenteSchema = new mongoose.Schema({
     beitragFuerKrankenvers: { type: Number, default: null },
     rentenartfaktor: { type: Number, default: null },
     teilrentenfaktor: { type: Number, default: null },
-    anpassungsschluessel: { type: String, default: null },
+    anpassungsschluessel: { type: Number, default: null },
   });
 
 const personaldatenZumVerbliebenenAngehoerigenSchema = new mongoose.Schema({

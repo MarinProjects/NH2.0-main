@@ -739,7 +739,7 @@ router.get("/person/:personId/rentenerstberechnungteil2/:rentenErstberechnungTei
   }
 });
 
-
+/**
 router.get("/person/:personId/datenBzglDerLaufendenRente/:datenBzglDerLaufendenRenteId", async (req, res, next) => {
   const { personId, datenBzglDerLaufendenRenteId } = req.params;
 
@@ -764,7 +764,33 @@ router.get("/person/:personId/datenBzglDerLaufendenRente/:datenBzglDerLaufendenR
       res.status(500).json({ error: error.message });
   }
 });
+ */
 
+router.get('/person/:personId/datenBzglDerLaufendenRente/:datenBzglDerLaufendenRenteId', async (req, res) => {
+  try {
+    const { personId, datenBzglDerLaufendenRenteId } = req.params;
+
+    const person = await Person.findById(personId).lean();
+
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found' });
+    }
+
+    const eintrag = person.datenbzglderlaufendenRente.find(
+      e => e._id.toString() === datenBzglDerLaufendenRenteId
+    );
+
+    if (!eintrag) {
+      return res.status(404).json({ error: 'DatenBzglDerLaufendenRente not found' });
+    }
+
+    res.json(eintrag);
+
+  } catch (error) {
+    console.error('Error fetching datenBzglDerLaufendenRente:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.get("/person/:personId/personaldatenZumVerbliebenenAngehoerigen/:personaldatenZumVerbliebenenAngehoerigenId", async (req, res, next) => {
   const { personId, personaldatenZumVerbliebenenAngehoerigenId } = req.params;

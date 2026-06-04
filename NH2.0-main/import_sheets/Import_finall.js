@@ -9571,7 +9571,7 @@ const dataToInsert = [
         "beitragFuerKrankenvers": 0,
         "rentenartfaktor": 1,
         "teilrentenfaktor": 6,
-        "anpassungsschluessel": "PKV",
+        "anpassungsschluessel": 760000,
         "_id": "6a0c2ae8f7b7da36553af801"
       }
     ],

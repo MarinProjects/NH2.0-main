@@ -364,6 +364,496 @@ const dataToInsert = [
   }
 },
 
+{
+  personalnummer: 500037,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 56.0135,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 234542,
+   rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozialversPflichtigesJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozialversFreieJahreAb20: 0.00,
+    schwerbehindert: false,
+    versorgungsausgleichDurchgefuehrt: false,
+    entgeltpunkte: 51.1945,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 0.6000,
+    teilrentenfaktor: 0.0000
+}},
+
+{
+  personalnummer: 230554,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 3010.00,
+    sozVersPflJahresgehaltRB: 38354.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan: 0.00,
+    teilzeitgrad: 82.10,
+    sozVersFreieJahreAb20: 1.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 232751,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 4109.00,
+    sozVersPflJahresgehaltRB: 52004.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 255240,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehaltRB: 2445.00,
+    sozVersPflJahresgehaltRB: 32194.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 66.60,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 225208,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehaltRB: 4024.00,
+    sozVersPflJahresgehaltRB: 52354.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 253104,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 2208.00,
+    sozVersPflJahresgehaltRB: 28284.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 81.70,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 253096,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 4252.00,
+    sozVersPflJahresgehaltRB: 54384.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 257303,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 1981.00,
+    sozVersPflJahresgehaltRB: 25334.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 39.90,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 253450,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 5480.00,
+    sozVersPflJahresgehaltRB: 70204.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 253419,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 3909.00,
+    sozVersPflJahresgehaltRB: 50044.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500304,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 51.4406,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 266130,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 45.2703,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 0.6000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 401641,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 252279,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 2366.00,
+    sozVersPflJahresgehaltRB: 33946.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 403762,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 38.8345,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 320978,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 15480.89,
+    sozVersPflJahresgehaltRB: 185770.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 15480.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 0.00,
+    sozVersFreieJahreAb20: 13.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 124859,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 152371,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 1923.00,
+    sozVersPflJahresgehaltRB: 25824.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 55.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 157339,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 42.2015,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 0.6000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500356,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 4587.00,
+    sozVersPflJahresgehaltRB: 57884.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 404894,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 56.6047,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 175547,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 28.4894,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500343,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 58.3929,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 1.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 186643,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 52.4132,
+    zugangsfaktor: 1.000,
+    rentenartfaktor: 0.6000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 404188,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 3961.00,
+    sozVersPflJahresgehaltRB: 50744.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500438,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 2707.00,
+    sozVersPflJahresgehaltRB: 35232.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 92.70,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+
+
+
+
+
 ];
 
 async function importRentenErstberechnungTeil1() {

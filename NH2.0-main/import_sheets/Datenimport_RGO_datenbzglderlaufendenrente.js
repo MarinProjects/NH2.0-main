@@ -1412,6 +1412,248 @@ const dataToInsert = [
   }
 },
 
+{
+  personalnummer: 105999,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 4452.00,
+    gesetzlicheSVRente: 1306.32,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 3145.68,
+    bezugsart: 182,
+    anpassungsschluessel: 731000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: "1",
+    krankenkassenkennziffer: "8492",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 122648,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 2669.00,
+    gesetzlicheSVRente: 934.57,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 905.35,
+    ausgleich: 0.00,
+    betrRente: 602.00,
+    bezugsart: 180,
+    anpassungsschluessel: 791004,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: "3",
+    krankenkassenkennziffer: "0470",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976051,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 383.00,
+    gesetzlicheSVRente: 0.00,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 383.47,
+    ausgleich: 0.00,
+    betrRente: 150.52,
+    bezugsart: 182,
+    anpassungsschluessel: 791000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: "3",
+    krankenkassenkennziffer: "0470",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500433,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2025-07-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-02-27"),
+    gesamtversorgung: 4100.00,
+    gesetzlicheSVRente: 0.00,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 4100.00,
+    bezugsart: 182,
+    anpassungsschluessel: 720000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: "3",
+    krankenkassenkennziffer: "849?",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 102392,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 4485.00,
+    gesetzlicheSVRente: 1349.83,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 1897.05,
+    ausgleich: 0.00,
+    betrRente: 869.83,
+    bezugsart: 180,
+    anpassungsschluessel: 791004,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: 6,
+    krankenkassenkennziffer: "0470",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976046,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2024-10-01"),
+    gueltigBis: null,
+    eingabedatum: new Date("2025-10-14"),
+    gesamtversorgung: 0.00,
+    gesetzlicheSVRente: 0.00,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 181.88,
+    ausgleich: 0.00,
+    betrRente: 181.88,
+    bezugsart: 177,
+    anpassungsschluessel: 760000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: 3,
+    krankenkassenkennziffer: "9032",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976032,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 2526.00,
+    gesetzlicheSVRente: 908.81,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 1541.19,
+    ausgleich: 0.00,
+    betrRente: 690.54,
+    bezugsart: 182,
+    anpassungsschluessel: 791000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: 0,
+    krankenkassenkennziffer: "1511",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 112888,
+  datenbzglderlaufendenRente: {
+    gueltigVon: new Date("2026-01-01"),
+    gueltigBis: new Date("2026-06-30"),
+    eingabedatum: new Date("2026-01-06"),
+    gesamtversorgung: 1815.00,
+    gesetzlicheSVRente: 1159.01,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    andereAnzurechnendeRenteName: null,
+    zusatzrente: 0.00,
+    zusatzrenteName: null,
+    pension: 449.44,
+    ausgleich: 0.00,
+    betrRente: 181.77,
+    bezugsart: 180,
+    anpassungsschluessel: 791000,
+    weitereRenteUnterPersNr: 0,
+    anzahlKinder: 0,
+    steuerklasse: 3,
+    krankenkassenkennziffer: "0471",
+    beitragFuerKrankenvers: 0.0,
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+}
+
+
+
 
 
 

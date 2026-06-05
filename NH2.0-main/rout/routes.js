@@ -1953,6 +1953,7 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
 // GET: Daten für RGO Halbjahr 2 Serienbriefe (nur Personen mit VO 72/73/79)
 // Liefert pro Person die 2 letzten Einträge aus datenbzglderlaufendenRente,
 // aber NUR wenn der letzte Eintrag gueltigVon = requested gueltigVon hat.
+/**
 router.get('/rgoHalfYear2LetterData', async (req, res) => {
   try {
     const { gueltigVon } = req.query; // erwartet YYYY-MM-DD
@@ -2028,7 +2029,137 @@ router.get('/rgoHalfYear2LetterData', async (req, res) => {
   }
 });
 
+ */
 
+router.post('/getRGOHalfYear2LetterData', async (req, res) => {
+  try {
+    const {
+      terminangabe,
+      gueltigVon,
+      anpassungswertInPct,
+      monatlicheMindestrente
+    } = req.body;
+
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const round2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      return x.toISOString().slice(0, 10);
+    };
+
+    const newDate = new Date(gueltigVon);
+    const year = newDate.getFullYear();
+
+    const oldGueltigVon = new Date(`${year}-01-01T00:00:00.000Z`);
+    const newGueltigVon = new Date(gueltigVon);
+
+    const persons = await Person.find({
+      versorgungsordnung: { $in: [72, 73, 79] },
+      aktuelleStatusgruppe: { $not: /^verst/i }
+    });
+
+    const result = [];
+
+    for (const person of persons) {
+      const renteArr = person.datenbzglderlaufendenRente || [];
+
+      const oldEntry = renteArr.find(e =>
+        e.gueltigVon && toDateKey(e.gueltigVon) === toDateKey(oldGueltigVon)
+      );
+
+      const newEntry = renteArr.find(e =>
+        e.gueltigVon && toDateKey(e.gueltigVon) === toDateKey(newGueltigVon)
+      );
+
+      if (!oldEntry || !newEntry) continue;
+
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = parseNum(teil2Last?.abschlag);
+      const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch);
+      const renteAusBefrLebensvers =
+        parseNum(teil2Last?.renteAusBefrLebensvers) || parseNum(oldEntry?.renteAusBefrLebensvers);
+
+      const mindestrente = parseNum(monatlicheMindestrente);
+
+      const oldGesamtversorgung = parseNum(oldEntry.gesamtversorgung);
+      const newGesamtversorgung = parseNum(newEntry.gesamtversorgung);
+
+      const oldSV = parseNum(oldEntry.gesetzlicheSVRente);
+      const newSV = parseNum(newEntry.gesetzlicheSVRente);
+
+      const oldBasis = oldGesamtversorgung - oldSV - renteAusBefrLebensvers;
+      const newBasis = newGesamtversorgung - newSV - renteAusBefrLebensvers;
+
+      const oldAbschlagBetrag = abschlagPct > 0 ? oldBasis * abschlagPct / 100 : 0;
+      const newAbschlagBetrag = abschlagPct > 0 ? newBasis * abschlagPct / 100 : 0;
+
+      const oldNachAbschlag = oldBasis - oldAbschlagBetrag;
+      const newNachAbschlag = newBasis - newAbschlagBetrag;
+
+      const oldVorRatierlich = oldNachAbschlag < mindestrente ? mindestrente : oldNachAbschlag;
+      const newVorRatierlich = newNachAbschlag < mindestrente ? mindestrente : newNachAbschlag;
+
+      const oldFinal = ratierlicherAnspruchPct > 0
+        ? oldVorRatierlich * ratierlicherAnspruchPct / 100
+        : oldVorRatierlich;
+
+      const newFinal = ratierlicherAnspruchPct > 0
+        ? newVorRatierlich * ratierlicherAnspruchPct / 100
+        : newVorRatierlich;
+
+      result.push({
+        personalnummer: person.personalnummer,
+        name: person.name,
+        adresse: person.adresse,
+        gesellschaft: person.gesellschaft,
+        aktenzeichen: `${person.gesellschaft || ''}-${person.personalnummer || ''}`,
+
+        terminangabe,
+        gueltigVon,
+
+        anpassungswertInPct: parseNum(anpassungswertInPct),
+
+        oldDate: oldGueltigVon,
+        newDate: newGueltigVon,
+
+        oldGesamtversorgung: round2(oldGesamtversorgung),
+        newGesamtversorgung: round2(newGesamtversorgung),
+
+        oldGesetzlicheSVRente: round2(oldSV),
+        newGesetzlicheSVRente: round2(newSV),
+
+        renteAusBefrLebensvers: round2(renteAusBefrLebensvers),
+
+        oldBasis: round2(oldBasis),
+        newBasis: round2(newBasis),
+
+        abschlagPct: round2(abschlagPct),
+        oldAbschlagBetrag: round2(oldAbschlagBetrag),
+        newAbschlagBetrag: round2(newAbschlagBetrag),
+
+        mindestrente: round2(mindestrente),
+
+        ratierlicherAnspruchPct: round2(ratierlicherAnspruchPct),
+
+        oldBetrRente: round2(oldFinal),
+        newBetrRente: round2(newFinal)
+      });
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('Fehler getRGOHalfYear2LetterData:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Solvenius übergabe 
 

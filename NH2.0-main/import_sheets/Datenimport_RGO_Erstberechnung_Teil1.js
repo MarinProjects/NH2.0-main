@@ -849,6 +849,155 @@ const dataToInsert = [
   }
 },
 
+{
+  personalnummer: 105999,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 122648,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 46776.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 3898.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976051,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 1250.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 50.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 500433,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 102392,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 89112.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 7426.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976046,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 6069.86,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 0.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+{
+  personalnummer: 976032,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehalt: 0.00,
+    sozVersPflJahresgehaltRB: 0.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 6357.07,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+},
+
+
+{
+  personalnummer: 112888,
+  rentenErstberechnungTeil1: {
+    pensionsfaehigesMonatsgehaltRB: 0.00,
+    sozVersPflJahresgehaltRB: 36048.00,
+    ruhegeldfaehigesDurchschnittsgehalt: 2995.00,
+    durchschnittsgehaltNachSozialplan687: 0.00,
+    teilzeitgrad: 100.00,
+    sozVersFreieJahreAb20: 0.00,
+    schwerbehindert: "Nein",
+    versorgungsausgleichDurchgefuehrt: "Nein",
+    entgeltpunkte: 0.0000,
+    zugangsfaktor: 0.000,
+    rentenartfaktor: 0.0000,
+    teilrentenfaktor: 0.0000
+  }
+}
+
+
+
+
+
 
 
 

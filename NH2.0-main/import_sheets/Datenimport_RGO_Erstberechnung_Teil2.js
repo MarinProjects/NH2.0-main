@@ -852,6 +852,155 @@ const dataToInsert = [
   }
 },
 
+{
+  personalnummer: 105999,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 2480.00,
+    gesetzlicheSVRente: 406.80,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 0.00,
+    anteil: 100.00,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 2073.20,
+    anpassungsschluessel: 73
+  }
+},
+
+{
+  personalnummer: 122648,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 2689.62,
+    gesetzlicheSVRente: 1053.96,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 4.33,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 36.28,
+    anteil: 100.00,
+    pension: 1564.83,
+    ausgleich: 0.00,
+    betrRente: 567.72,
+    anpassungsschluessel: 791004
+  }
+},
+
+{
+  personalnummer: 976051,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 343.20,
+    gesetzlicheSVRente: 0.00,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 39.30,
+    anteil: 100.00,
+    pension: 134.84,
+    ausgleich: 0.00,
+    betrRente: 134.84,
+    anpassungsschluessel: 79
+  }
+},
+
+{
+  personalnummer: 500433,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 8620.00,
+    gesetzlicheSVRente: 204.95,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 0.00,
+    anteil: 100.00,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 8415.05,
+    anpassungsschluessel: 72
+  }
+},
+
+{
+  personalnummer: 102392,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 2847.61,
+    gesetzlicheSVRente: 864.70,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 4.33,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 29.00,
+    anteil: 100.00,
+    pension: 1897.05,
+    ausgleich: 0.00,
+    betrRente: 550.14,
+    anpassungsschluessel: 79
+  }
+},
+
+{
+  personalnummer: 976046,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 0.00,
+    gesetzlicheSVRente: 0.00,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 33.55,
+    anteil: 100.00,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 290.49,
+    anpassungsschluessel: 76
+  }
+},
+
+{
+  personalnummer: 976032,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 4259.25,
+    gesetzlicheSVRente: 1708.19,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 42.70,
+    anteil: 100.00,
+    pension: 0.00,
+    ausgleich: 0.00,
+    betrRente: 1089.17,
+    anpassungsschluessel: 70
+  }
+},
+
+
+{
+  personalnummer: 112888,
+  rentenErstberechnungTeil2: {
+    gesamtversorgung: 1148.41,
+    gesetzlicheSVRente: 742.47,
+    renteAusBefrLebensversich: 0.00,
+    andereAnzurechnendeRente: 0.00,
+    abschlag: 0.00,
+    zusatzrente: 0.00,
+    ratierlicherAnspruch: 27.71,
+    anteil: 100.00,
+    pension: 405.94,
+    ausgleich: 0.00,
+    betriebsrente: 112.49,
+    anpassungsschluessel: 79
+  }
+}
+
+
+
+
+
 
 
 

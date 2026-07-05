@@ -2491,12 +2491,6 @@ router.post('/person/:id/markAsDeceased', async (req, res) => {
 
   
   
-  //mikka
-  
-  // chika
-
-  // mika
-
-  // tika
+//testdeployment
 
   module.exports = router;

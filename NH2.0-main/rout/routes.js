@@ -1509,7 +1509,7 @@ router.get('/latestAdjustments', async (req, res) => {
 
 
 
-
+/** 
 // RGO Halbjahr 1 – Anpassung
 router.post('/adjustRGOHalfYear1', async (req, res) => {
   const {
@@ -1662,8 +1662,419 @@ router.post('/adjustRGOHalfYear1', async (req, res) => {
   }
 });
 
+*/
 
+// RGO Halbjahr 1 – Anpassung
+router.post('/adjustRGOHalfYear1', async (req, res) => {
+  const {
+    terminangabe,
+    gueltigVon,
+    gueltigBis,
+    monatlicheMindestrente,
+    sollGesamtversorgungAngepasstWerden,
+    anpassungswertInPct
+  } = req.body;
 
+  try {
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        {
+          aktuelleStatusgruppe: {
+            $not: {
+              $regex: '^verst',
+              $options: 'i'
+            }
+          }
+        }
+      ]
+    });
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      const yyyy = x.getFullYear();
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const dd = String(x.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const specialHalfPct = new Set([500433, 404165, 404164, 500446]);
+
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const clamp2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const calculate = ({
+      oldGesamtversorgung,
+      gesetzlicheSVRente,
+      renteAusBefrLebensvers,
+      andereAnzurechnendeRente,
+      pct,
+      sollAnpassen,
+      abschlagPct,
+      ratierlicherAnspruchPct,
+      anteilPct,
+      mindestrente
+    }) => {
+      const newGesamtversorgung = sollAnpassen
+        ? oldGesamtversorgung * (1 + pct / 100)
+        : oldGesamtversorgung;
+
+      const base =
+        newGesamtversorgung
+        - gesetzlicheSVRente
+        - (renteAusBefrLebensvers || 0)
+        - (andereAnzurechnendeRente || 0);
+
+      const afterAbschlag =
+        abschlagPct > 0 ? base * (1 - abschlagPct / 100) : base;
+
+      const betrRente1 =
+        afterAbschlag < mindestrente ? mindestrente : afterAbschlag;
+
+      const afterRatierlich =
+        ratierlicherAnspruchPct > 0
+          ? betrRente1 * (ratierlicherAnspruchPct / 100)
+          : betrRente1;
+
+      const betrRenteFinal =
+        anteilPct > 0
+          ? afterRatierlich * (anteilPct / 100)
+          : afterRatierlich;
+
+      return {
+        newGesamtversorgung: clamp2(newGesamtversorgung),
+        betrRenteNew: clamp2(betrRenteFinal)
+      };
+    };
+
+    let adjustedCount = 0;
+    const adjustmentDetails = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      const lastEntry = arr.length > 0 ? arr[arr.length - 1] : null;
+
+      if (!lastEntry) continue;
+
+      const targetKey = toDateKey(gueltigVon);
+      const alreadyExists = arr.some(e => e?.gueltigVon && toDateKey(e.gueltigVon) === targetKey);
+      if (alreadyExists) continue;
+
+      let pct = parseNum(anpassungswertInPct);
+      if (specialHalfPct.has(person.personalnummer)) pct = pct / 2;
+
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = parseNum(teil2Last?.abschlag);
+      const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch);
+      const anteilPct = parseNum(teil2Last?.anteil);
+
+      const renteAusBefrLebensvers =
+        parseNum(teil2Last?.renteAusBefrLebensvers) || parseNum(lastEntry?.renteAusBefrLebensvers);
+
+      const andereAnzurechnendeRente = parseNum(lastEntry?.andereAnzurechnendeRente);
+
+      const oldGesamtversorgung = parseNum(lastEntry?.gesamtversorgung);
+      const gesetzlicheSVRente = parseNum(lastEntry?.gesetzlicheSVRente);
+      const mindestrente = parseNum(monatlicheMindestrente);
+
+      const { newGesamtversorgung, betrRenteNew } = calculate({
+        oldGesamtversorgung,
+        gesetzlicheSVRente,
+        renteAusBefrLebensvers,
+        andereAnzurechnendeRente,
+        pct,
+        sollAnpassen: !!sollGesamtversorgungAngepasstWerden,
+        abschlagPct,
+        ratierlicherAnspruchPct,
+        anteilPct,
+        mindestrente
+      });
+
+      const newEntry = {
+        ...lastEntry.toObject(),
+        _id: undefined,
+        gueltigVon: new Date(gueltigVon),
+        gueltigBis: new Date(gueltigBis),
+        eingabedatum: new Date(),
+        gesamtversorgung: newGesamtversorgung,
+        betrRente: betrRenteNew
+      };
+
+      person.datenbzglderlaufendenRente.push(newEntry);
+      await person.save();
+
+      adjustedCount++;
+
+      adjustmentDetails.push({
+        personalnummer: person.personalnummer,
+        name: person.name || '',
+        betrRenteLastHalf: clamp2(parseNum(lastEntry?.betrRente)),
+        betrRenteNewHalf: clamp2(betrRenteNew)
+      });
+    }
+
+    res.status(200).json({
+      message: `RGO Halbjahr 1 erfolgreich berechnet für ${adjustedCount} Personen`,
+      adjustmentDetails
+    });
+
+  } catch (error) {
+    console.error('Error adjusting RGO HalfYear1:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/rgoHalfYear1Letters', async (req, res) => {
+  const {
+    terminangabe,
+    gueltigVon,
+    anpassungswertInPct,
+    monatlicheMindestrente
+  } = req.body;
+
+  try {
+    const persons = await Person.find({
+      $and: [
+        { versorgungsordnung: { $in: [72, 73, 79] } },
+        {
+          aktuelleStatusgruppe: {
+            $not: {
+              $regex: '^verst',
+              $options: 'i'
+            }
+          }
+        }
+      ]
+    });
+
+    const specialHalfPct = new Set([500433, 404165, 404164, 500446]);
+
+    const num = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const clamp2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const toGermanDate = (d) => {
+      const x = new Date(d);
+      const dd = String(x.getDate()).padStart(2, '0');
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const yyyy = x.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
+    };
+
+    const getAnrede = (geschlecht) => {
+      const g = String(geschlecht || '').toLowerCase();
+
+      if (
+        g.startsWith('w') ||
+        g.includes('weib')
+      ) {
+        return 'Frau';
+      }
+
+      if (
+        g.startsWith('m') ||
+        g.includes('männ') ||
+        g.includes('maenn') ||
+        g.includes('män')
+      ) {
+        return 'Herr';
+      }
+
+      return '';
+    };
+
+    const getBriefAnrede = (person) => {
+      const anrede = getAnrede(person.geschlecht);
+
+      if (anrede === 'Frau') {
+        return `Sehr geehrte Frau ${person.name || ''},`;
+      }
+
+      if (anrede === 'Herr') {
+        return `Sehr geehrter Herr ${person.name || ''},`;
+      }
+
+      return `Sehr geehrte/r ${person.name || ''},`;
+    };
+
+    const letters = [];
+
+    for (const person of persons) {
+      const arr = person.datenbzglderlaufendenRente || [];
+      if (arr.length < 2) continue;
+
+      const latest = arr[arr.length - 1];
+      const previous = arr[arr.length - 2];
+
+      const latestKey = new Date(latest.gueltigVon).toISOString().slice(0, 10);
+      const targetKey = new Date(gueltigVon).toISOString().slice(0, 10);
+
+      if (latestKey !== targetKey) continue;
+
+      let pct = num(anpassungswertInPct);
+      if (specialHalfPct.has(person.personalnummer)) {
+        pct = pct / 2;
+      }
+
+      const mindestrente = num(monatlicheMindestrente);
+
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = num(teil2Last?.abschlag);
+      const ratierlicherPct = num(teil2Last?.ratierlicherAnspruch);
+      const anteilPct = num(teil2Last?.anteil);
+
+      const oldGesamt = num(previous.gesamtversorgung);
+      const newGesamt = num(latest.gesamtversorgung);
+
+      const oldGesetzliche = num(previous.gesetzlicheSVRente);
+      const newGesetzliche = num(latest.gesetzlicheSVRente);
+
+      const renteBefrLV =
+        num(teil2Last?.renteAusBefrLebensvers) || num(previous.renteAusBefrLebensvers);
+
+      const andereAnzurechnendeRente = num(previous.andereAnzurechnendeRente);
+
+      const oldBasis = clamp2(
+        oldGesamt
+        - oldGesetzliche
+        - renteBefrLV
+        - andereAnzurechnendeRente
+      );
+
+      const newBasis = clamp2(
+        newGesamt
+        - newGesetzliche
+        - renteBefrLV
+        - andereAnzurechnendeRente
+      );
+
+      const oldNachAbschlag =
+        abschlagPct > 0 ? clamp2(oldBasis * (1 - abschlagPct / 100)) : oldBasis;
+
+      const newNachAbschlag =
+        abschlagPct > 0 ? clamp2(newBasis * (1 - abschlagPct / 100)) : newBasis;
+
+      const oldNachMindestrente =
+        oldNachAbschlag < mindestrente ? mindestrente : oldNachAbschlag;
+
+      const newNachMindestrente =
+        newNachAbschlag < mindestrente ? mindestrente : newNachAbschlag;
+
+      const oldNachRatierlich =
+        ratierlicherPct > 0
+          ? clamp2(oldNachMindestrente * ratierlicherPct / 100)
+          : oldNachMindestrente;
+
+      const newNachRatierlich =
+        ratierlicherPct > 0
+          ? clamp2(newNachMindestrente * ratierlicherPct / 100)
+          : newNachMindestrente;
+
+      const oldFinal =
+        anteilPct > 0
+          ? clamp2(oldNachRatierlich * anteilPct / 100)
+          : oldNachRatierlich;
+
+      const newFinal =
+        anteilPct > 0
+          ? clamp2(newNachRatierlich * anteilPct / 100)
+          : newNachRatierlich;
+
+      const gueltigVonDate = new Date(gueltigVon);
+      const year = gueltigVonDate.getFullYear();
+      const nextYear = year + 1;
+
+      letters.push({
+        personalnummer: person.personalnummer,
+        gesellschaft: person.gesellschaft || '',
+        aktenzeichen: `${person.gesellschaft || ''}-${person.personalnummer || ''}`,
+
+        name: person.name || '',
+        adresse: person.adresse || '',
+        geschlecht: person.geschlecht || '',
+
+        anrede: getAnrede(person.geschlecht),
+        briefAnrede: getBriefAnrede(person),
+
+        terminangabe: terminangabe ? toGermanDate(terminangabe) : toGermanDate(new Date()),
+        gueltigVon: toGermanDate(latest.gueltigVon),
+        oldDateLabel: previous.gueltigBis
+          ? toGermanDate(previous.gueltigBis)
+          : toGermanDate(previous.gueltigVon),
+
+        pctUsed: pct,
+
+        oldGesamt,
+        newGesamt,
+
+        oldGesetzliche,
+        newGesetzliche,
+
+        renteBefrLV,
+        andereAnzurechnendeRente,
+
+        oldBasis,
+        newBasis,
+
+        abschlagPct,
+        oldNachAbschlag,
+        newNachAbschlag,
+
+        mindestrente,
+        oldNachMindestrente,
+        newNachMindestrente,
+
+        ratierlicherPct,
+        oldNachRatierlich,
+        newNachRatierlich,
+
+        anteilPct,
+        oldBetrRente: oldFinal,
+        newBetrRente: newFinal,
+
+        closingText:
+          `Der Tarifvertrag hat eine Laufzeit bis zum 31.12.${nextYear}. ` +
+          `Die nächste Neuberechnung Ihrer betrieblichen Rente erfolgt zum 01.02.${nextYear}.`,
+
+        signaturLinks: 'Oliver Richter',
+        signaturRechts: 'i. A. Konstantina Daftsidou',
+
+        footerLeft:
+          'BGAG Beteiligungsgesellschaft der Gewerkschaften GmbH\n' +
+          'Wilhelm-Leuschner-Straße 81, 60329 Frankfurt am Main\n' +
+          'Telefon 069-97566-0 · Telefax 069-97566-104\n' +
+          'Bank: Landesbank Hessen-Thüringen Girozentrale',
+
+        footerRight:
+          'Vorsitzender des Beirats: Jürgen Kerner\n' +
+          'Geschäftsführung: Thomas Oberele · Oliver Richter\n' +
+          'Sitz: Frankfurt am Main · HRB 7647B\n' +
+          'IBAN: DE64 5005 0000 0000 1101 06 · SWIFT: HELADEFF'
+      });
+    }
+
+    res.status(200).json({
+      letters,
+      count: letters.length
+    });
+
+  } catch (error) {
+    console.error('Error building RGO HalfYear1 letters:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+/** 
 // RGO Halbjahr 1 Serienbriefe – Daten liefern
 router.post('/rgoHalfYear1Letters', async (req, res) => {
   const {
@@ -1788,9 +2199,8 @@ router.post('/rgoHalfYear1Letters', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-// RGO Halbjahr 2 – Anpassung (gesetzliche SV-Rente wird erhöht, Gesamtversorgung bleibt gleich)
+*/
+// RGO Halbjahr 2 – Anpassung
 router.post('/adjustRGOHalfYear2', async (req, res) => {
   const {
     terminangabe,
@@ -1805,11 +2215,14 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
     const persons = await Person.find({
       $and: [
         { versorgungsordnung: { $in: [72, 73, 79] } },
-        { aktuelleStatusgruppe: {  $not: {
-          $regex: '^verst',
-          $options: 'i'
+        {
+          aktuelleStatusgruppe: {
+            $not: {
+              $regex: '^verst',
+              $options: 'i'
+            }
+          }
         }
- } }
       ]
     });
 
@@ -1834,35 +2247,41 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
       gesamtversorgungOld,
       gesetzlicheSVRenteOld,
       renteAusBefrLebensvers,
+      andereAnzurechnendeRente,
       pct,
       sollSVAnpassen,
       abschlagPct,
       ratierlicherAnspruchPct,
+      anteilPct,
       mindestrente
     }) => {
-      // 1) Gesamtversorgung bleibt gleich
       const gesamtversorgungNew = gesamtversorgungOld;
 
-      // 2) gesetzliche SV-Rente wird erhöht (wenn gewünscht)
       const gesetzlicheSVRenteNew = sollSVAnpassen
         ? gesetzlicheSVRenteOld * (1 + pct / 100)
         : gesetzlicheSVRenteOld;
 
-      // 3) Basis: GV - gesetzl. SV - befr. LV (vor Abschlag)
       const base =
-        gesamtversorgungNew - gesetzlicheSVRenteNew - (renteAusBefrLebensvers || 0);
+        gesamtversorgungNew
+        - gesetzlicheSVRenteNew
+        - (renteAusBefrLebensvers || 0)
+        - (andereAnzurechnendeRente || 0);
 
-      // 4) Abschlag (Prozent)
-      const afterAbschlag = abschlagPct > 0 ? base * (1 - abschlagPct / 100) : base;
+      const afterAbschlag =
+        abschlagPct > 0 ? base * (1 - abschlagPct / 100) : base;
 
-      // 5) Mindestrente greift auf "betrRente1"
-      const betrRente1 = afterAbschlag < mindestrente ? mindestrente : afterAbschlag;
+      const betrRente1 =
+        afterAbschlag < mindestrente ? mindestrente : afterAbschlag;
 
-      // 6) ratierlicher Anspruch (unverfallbarer Anspruch)
-      const betrRenteFinal =
+      const afterRatierlich =
         ratierlicherAnspruchPct > 0
           ? betrRente1 * (ratierlicherAnspruchPct / 100)
           : betrRente1;
+
+      const betrRenteFinal =
+        anteilPct > 0
+          ? afterRatierlich * (anteilPct / 100)
+          : afterRatierlich;
 
       return {
         gesetzlicheSVRenteNew: clamp2(gesetzlicheSVRenteNew),
@@ -1877,26 +2296,27 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
     for (const person of persons) {
       const arr = person.datenbzglderlaufendenRente || [];
       const lastEntry = arr.length > 0 ? arr[arr.length - 1] : null;
+
       if (!lastEntry) continue;
 
-      // Skip: wenn bereits Eintrag mit gleichem gueltigVon existiert
       const targetKey = toDateKey(gueltigVon);
       const alreadyExists = arr.some(e => e?.gueltigVon && toDateKey(e.gueltigVon) === targetKey);
       if (alreadyExists) continue;
 
-      // Prozentsatz ggf. halbieren (Sonderfälle)
       let pct = parseNum(anpassungswertInPct);
       if (specialHalfPct.has(person.personalnummer)) pct = pct / 2;
 
-      // Teil2-Daten (Abschlag / ratierlicher Anspruch / Rente aus befr. LV)
       const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
       const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
 
       const abschlagPct = parseNum(teil2Last?.abschlag);
       const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch);
+      const anteilPct = parseNum(teil2Last?.anteil);
 
       const renteAusBefrLebensvers =
         parseNum(teil2Last?.renteAusBefrLebensvers) || parseNum(lastEntry?.renteAusBefrLebensvers);
+
+      const andereAnzurechnendeRente = parseNum(lastEntry?.andereAnzurechnendeRente);
 
       const gesamtversorgungOld = parseNum(lastEntry?.gesamtversorgung);
       const gesetzlicheSVRenteOld = parseNum(lastEntry?.gesetzlicheSVRente);
@@ -1906,10 +2326,12 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
         gesamtversorgungOld,
         gesetzlicheSVRenteOld,
         renteAusBefrLebensvers,
+        andereAnzurechnendeRente,
         pct,
         sollSVAnpassen: !!sollGesetzlicheRenteAngepasstWerden,
         abschlagPct,
         ratierlicherAnspruchPct,
+        anteilPct,
         mindestrente
       });
 
@@ -1943,11 +2365,259 @@ router.post('/adjustRGOHalfYear2', async (req, res) => {
       message: `RGO Halbjahr 2 erfolgreich berechnet für ${adjustedCount} Personen`,
       adjustmentDetails
     });
+
   } catch (error) {
     console.error('Error adjusting RGO HalfYear2:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+router.post('/getRGOHalfYear2LetterData', async (req, res) => {
+  try {
+    const {
+      terminangabe,
+      gueltigVon,
+      anpassungswertInPct,
+      monatlicheMindestrente
+    } = req.body;
+
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const round2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+    const toDateKey = (d) => {
+      const x = new Date(d);
+      return x.toISOString().slice(0, 10);
+    };
+
+    const toGermanDate = (d) => {
+      const x = new Date(d);
+      const dd = String(x.getDate()).padStart(2, '0');
+      const mm = String(x.getMonth() + 1).padStart(2, '0');
+      const yyyy = x.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
+    };
+
+    const getAnrede = (geschlecht) => {
+      const g = String(geschlecht || '').toLowerCase();
+
+      if (
+        g.startsWith('w') ||
+        g.includes('weib')
+      ) {
+        return 'Frau';
+      }
+
+      if (
+        g.startsWith('m') ||
+        g.includes('männ') ||
+        g.includes('maenn') ||
+        g.includes('män')
+      ) {
+        return 'Herr';
+      }
+
+      return '';
+    };
+
+    const getBriefAnrede = (person) => {
+      const anrede = getAnrede(person.geschlecht);
+
+      if (anrede === 'Frau') {
+        return `Sehr geehrte Frau ${person.name || ''},`;
+      }
+
+      if (anrede === 'Herr') {
+        return `Sehr geehrter Herr ${person.name || ''},`;
+      }
+
+      return `Sehr geehrte/r ${person.name || ''},`;
+    };
+
+    const newDate = new Date(gueltigVon);
+    const year = newDate.getFullYear();
+
+    const oldGueltigVon = new Date(`${year}-01-01T00:00:00.000Z`);
+    const newGueltigVon = new Date(gueltigVon);
+
+    const persons = await Person.find({
+      versorgungsordnung: { $in: [72, 73, 79] },
+      aktuelleStatusgruppe: { $not: /^verst/i }
+    });
+
+    const result = [];
+
+    for (const person of persons) {
+      const renteArr = person.datenbzglderlaufendenRente || [];
+
+      const oldEntry = renteArr.find(e =>
+        e.gueltigVon && toDateKey(e.gueltigVon) === toDateKey(oldGueltigVon)
+      );
+
+      const newEntry = renteArr.find(e =>
+        e.gueltigVon && toDateKey(e.gueltigVon) === toDateKey(newGueltigVon)
+      );
+
+      if (!oldEntry || !newEntry) continue;
+
+      const teil2Arr = person.rentenErstberechnungTeil2Daten || [];
+      const teil2Last = teil2Arr.length > 0 ? teil2Arr[teil2Arr.length - 1] : null;
+
+      const abschlagPct = parseNum(teil2Last?.abschlag);
+      const ratierlicherAnspruchPct = parseNum(teil2Last?.ratierlicherAnspruch);
+      const anteilPct = parseNum(teil2Last?.anteil);
+
+      const renteAusBefrLebensvers =
+        parseNum(teil2Last?.renteAusBefrLebensvers) ||
+        parseNum(oldEntry?.renteAusBefrLebensvers);
+
+      const andereAnzurechnendeRente = parseNum(oldEntry?.andereAnzurechnendeRente);
+
+      const mindestrente = parseNum(monatlicheMindestrente);
+
+      const oldGesamtversorgung = parseNum(oldEntry.gesamtversorgung);
+      const newGesamtversorgung = parseNum(newEntry.gesamtversorgung);
+
+      const oldSV = parseNum(oldEntry.gesetzlicheSVRente);
+      const newSV = parseNum(newEntry.gesetzlicheSVRente);
+
+      const oldBasis = round2(
+        oldGesamtversorgung
+        - oldSV
+        - renteAusBefrLebensvers
+        - andereAnzurechnendeRente
+      );
+
+      const newBasis = round2(
+        newGesamtversorgung
+        - newSV
+        - renteAusBefrLebensvers
+        - andereAnzurechnendeRente
+      );
+
+      const oldAbschlagBetrag =
+        abschlagPct > 0 ? round2(oldBasis * abschlagPct / 100) : 0;
+
+      const newAbschlagBetrag =
+        abschlagPct > 0 ? round2(newBasis * abschlagPct / 100) : 0;
+
+      const oldNachAbschlag = round2(oldBasis - oldAbschlagBetrag);
+      const newNachAbschlag = round2(newBasis - newAbschlagBetrag);
+
+      const oldVorRatierlich =
+        oldNachAbschlag < mindestrente ? mindestrente : oldNachAbschlag;
+
+      const newVorRatierlich =
+        newNachAbschlag < mindestrente ? mindestrente : newNachAbschlag;
+
+      const oldNachRatierlich =
+        ratierlicherAnspruchPct > 0
+          ? round2(oldVorRatierlich * ratierlicherAnspruchPct / 100)
+          : oldVorRatierlich;
+
+      const newNachRatierlich =
+        ratierlicherAnspruchPct > 0
+          ? round2(newVorRatierlich * ratierlicherAnspruchPct / 100)
+          : newVorRatierlich;
+
+      const oldFinal =
+        anteilPct > 0
+          ? round2(oldNachRatierlich * anteilPct / 100)
+          : oldNachRatierlich;
+
+      const newFinal =
+        anteilPct > 0
+          ? round2(newNachRatierlich * anteilPct / 100)
+          : newNachRatierlich;
+
+      result.push({
+        personalnummer: person.personalnummer,
+        gesellschaft: person.gesellschaft || '',
+        aktenzeichen: `${person.gesellschaft || ''}-${person.personalnummer || ''}`,
+
+        name: person.name || '',
+        adresse: person.adresse || '',
+        geschlecht: person.geschlecht || '',
+
+        anrede: getAnrede(person.geschlecht),
+        briefAnrede: getBriefAnrede(person),
+
+        terminangabe: terminangabe ? toGermanDate(terminangabe) : toGermanDate(new Date()),
+        gueltigVon: toGermanDate(gueltigVon),
+
+        oldDate: toGermanDate(oldGueltigVon),
+        newDate: toGermanDate(newGueltigVon),
+
+        anpassungswertInPct: parseNum(anpassungswertInPct),
+
+        oldGesamtversorgung: round2(oldGesamtversorgung),
+        newGesamtversorgung: round2(newGesamtversorgung),
+
+        oldGesetzlicheSVRente: round2(oldSV),
+        newGesetzlicheSVRente: round2(newSV),
+
+        renteAusBefrLebensvers: round2(renteAusBefrLebensvers),
+        andereAnzurechnendeRente: round2(andereAnzurechnendeRente),
+
+        oldBasis,
+        newBasis,
+
+        abschlagPct: round2(abschlagPct),
+        oldAbschlagBetrag,
+        newAbschlagBetrag,
+
+        oldNachAbschlag,
+        newNachAbschlag,
+
+        mindestrente: round2(mindestrente),
+        oldVorRatierlich: round2(oldVorRatierlich),
+        newVorRatierlich: round2(newVorRatierlich),
+
+        ratierlicherAnspruchPct: round2(ratierlicherAnspruchPct),
+        oldNachRatierlich,
+        newNachRatierlich,
+
+        anteilPct: round2(anteilPct),
+
+        oldBetrRente: oldFinal,
+        newBetrRente: newFinal,
+
+        closingText:
+          'Wenn Sie Fragen haben oder weitere Informationen benötigen, rufen Sie uns bitte an.',
+
+        signaturLinks: 'Oliver Richter',
+        signaturRechts: 'i. A. Konstantina Daftsidou',
+
+        footerLeft:
+          'BGAG Beteiligungsgesellschaft der Gewerkschaften GmbH\n' +
+          'Wilhelm-Leuschner-Straße 81, 60329 Frankfurt am Main\n' +
+          'Telefon 069-97566-0 · Telefax 069-97566-104\n' +
+          'Bank: Landesbank Hessen-Thüringen Girozentrale',
+
+        footerRight:
+          'Vorsitzender des Beirats: Jürgen Kerner\n' +
+          'Geschäftsführung: Thomas Oberele · Oliver Richter\n' +
+          'Sitz: Frankfurt am Main · HRB 7647B\n' +
+          'IBAN: DE64 5005 0000 0000 1101 06 · SWIFT: HELADEFF'
+      });
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('Fehler getRGOHalfYear2LetterData:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
 
 
 // GET: Daten für RGO Halbjahr 2 Serienbriefe (nur Personen mit VO 72/73/79)
@@ -2030,7 +2700,7 @@ router.get('/rgoHalfYear2LetterData', async (req, res) => {
 });
 
  */
-
+/** 
 router.post('/getRGOHalfYear2LetterData', async (req, res) => {
   try {
     const {
@@ -2160,7 +2830,7 @@ router.post('/getRGOHalfYear2LetterData', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+*/
 // Solvenius übergabe 
 
 // Übergabe an Solvenius

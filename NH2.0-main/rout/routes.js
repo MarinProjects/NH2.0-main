@@ -839,6 +839,27 @@ router.get('/persons/:personalnummer', async (req, res) => {
   }
 });
 
+router.get('/persons/name/:name', async (req, res) => {
+  try {
+    const searchName = req.params.name;
+
+    const persons = await Person.find({
+      name: {
+        $regex: searchName,
+        $options: 'i'
+      }
+    });
+
+    res.status(200).json(persons);
+  } catch (error) {
+    console.error('Error fetching persons by name:', error.message);
+
+    res.status(500).json({
+      error: error.message
+    });
+  }
+});
+
 
 
 
@@ -2614,6 +2635,10 @@ router.post('/getRGOHalfYear2LetterData', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+
 
 
 

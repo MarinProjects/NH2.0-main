@@ -6,7 +6,76 @@ var express = require('express');
 const Person = require("../model/person");
 
 var router = express.Router();
+// ======================================================
+// LOGIN
+// ======================================================
+
+router.post('/auth/login', async (req, res) => {
+  try {
+
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        error: 'Benutzername und Passwort erforderlich'
+      });
+    }
+
+    const user = await User.findOne({
+      username: username,
+      active: true
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        error: 'Benutzername oder Passwort falsch'
+      });
+    }
+
+    const passwordCorrect = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordCorrect) {
+      return res.status(401).json({
+        error: 'Benutzername oder Passwort falsch'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '8h'
+      }
+    );
+
+    return res.status(200).json({
+      token: token,
+      username: user.username,
+      role: user.role
+    });
+
+  } catch (error) {
+
+    console.error('Login-Fehler:', error);
+
+    return res.status(500).json({
+      error: 'Login fehlgeschlagen'
+    });
+  }
+});
+
 const { response } = require('express');
+
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../model/user');
 
 //Backup
 const path = require('path');

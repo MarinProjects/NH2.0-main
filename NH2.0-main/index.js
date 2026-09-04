@@ -1,3 +1,4 @@
+require('dotenv').config();
 var express = require('express');
 var path = require('path');
 
@@ -9,6 +10,7 @@ var cors = require('cors');
 // Create express instance
 var app = express();
 const routee = require('./rout/routes.js');
+
 
 //Connect to MongoDB database using mongoose and creating a database item
 mongoose.connect('mongodb://127.0.0.1:27017/neue_heimat_xx');

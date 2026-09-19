@@ -3241,6 +3241,511 @@ router.post('/person/:id/markAsDeceased', async (req, res) => {
 
 
 
+// Pensionsbericht
+
+// =====================================================
+// PENSIONSBERICHT - BESTANDSSTRUKTUR
+// =====================================================
+
+router.get('/reports/pensions/structure', async (req, res) => {
+  try {
+
+    const persons = await Person.find(
+      {},
+      {
+        personalnummer: 1,
+        kennung: 1,
+        aktuelleStatusgruppe: 1
+      }
+    ).lean();
+
+    // -------------------------------------------------
+    // Hilfsfunktion: Verstorbene Personen erkennen
+    // -------------------------------------------------
+
+    const isVerstorben = (person) => {
+
+      const status = String(
+        person?.aktuelleStatusgruppe || ''
+      )
+        .trim()
+        .toLowerCase();
+
+      return (
+        status.includes('verstorben') ||
+        status.includes('verst.') ||
+        status === 'verst' ||
+        status.includes('tod')
+      );
+    };
+
+
+    // -------------------------------------------------
+    // Verstorbene aus dem Bericht entfernen
+    // -------------------------------------------------
+
+    const relevantePersonen = persons.filter(
+      person => !isVerstorben(person)
+    );
+
+
+    // -------------------------------------------------
+    // Ergebnisobjekt
+    // -------------------------------------------------
+
+    const result = {
+
+      total: 0,
+
+      altersrentner: 0,
+      invaliditaetsrentner: 0,
+      hinterbliebene: 0,
+      versorgungsausgleich: 0,
+      waisen: 0,
+
+      sonstige: 0,
+
+      ausgeschlossenVerstorben: (
+        persons.length - relevantePersonen.length
+      )
+
+    };
+
+
+    // -------------------------------------------------
+    // Klassifizierung über Kennung
+    // -------------------------------------------------
+
+    relevantePersonen.forEach((person) => {
+
+      const kennung = String(
+        person?.kennung || ''
+      )
+        .trim()
+        .toUpperCase();
+
+
+      switch (kennung) {
+
+        case 'R':
+          result.altersrentner++;
+          break;
+
+        case 'I':
+          result.invaliditaetsrentner++;
+          break;
+
+        case 'H':
+          result.hinterbliebene++;
+          break;
+
+        case 'VA':
+          result.versorgungsausgleich++;
+          break;
+
+        case 'W':
+          result.waisen++;
+          break;
+
+        default:
+          result.sonstige++;
+          break;
+      }
+
+    });
+
+
+    result.total = relevantePersonen.length;
+
+
+    res.status(200).json(result);
+
+  } catch (error) {
+
+    console.error(
+      'Fehler beim Erstellen der Pensionsstruktur:',
+      error
+    );
+
+    res.status(500).json({
+      message:
+        'Die Pensionsstruktur konnte nicht erstellt werden.'
+    });
+
+  }
+});
+
+
+
+// =====================================================
+// PENSIONSBERICHT - VERSTORBENE IM ZEITRAUM
+// =====================================================
+
+router.get('/reports/pensions/deceased', async (req, res) => {
+
+  try {
+
+    const {
+      startDate,
+      endDate
+    } = req.query;
+
+
+    // -------------------------------------------------
+    // Parameter prüfen
+    // -------------------------------------------------
+
+    if (
+      !startDate ||
+      !endDate
+    ) {
+
+      return res.status(400).json({
+        message:
+          'Anfangsdatum und Enddatum sind erforderlich.'
+      });
+
+    }
+
+
+    // -------------------------------------------------
+    // Datumsbereich erzeugen
+    //
+    // Anfang: 00:00:00
+    // Ende:    23:59:59.999
+    // -------------------------------------------------
+
+    const start =
+      new Date(
+        `${startDate}T00:00:00.000Z`
+      );
+
+    const end =
+      new Date(
+        `${endDate}T23:59:59.999Z`
+      );
+
+
+    if (
+      isNaN(start.getTime()) ||
+      isNaN(end.getTime())
+    ) {
+
+      return res.status(400).json({
+        message:
+          'Ungültiges Datumsformat.'
+      });
+
+    }
+
+
+    if (start > end) {
+
+      return res.status(400).json({
+        message:
+          'Das Anfangsdatum darf nicht nach dem Enddatum liegen.'
+      });
+
+    }
+
+
+    // -------------------------------------------------
+    // Verstorbene Personen aus MongoDB laden
+    // -------------------------------------------------
+
+    const persons =
+      await Person.find(
+        {
+          verstorbenAm: {
+            $gte: start,
+            $lte: end
+          }
+        },
+        {
+          gesellschaft: 1,
+          personalnummer: 1,
+          kennung: 1,
+          familienstand: 1,
+          versorgungsordnung: 1,
+          name: 1,
+          verstorbenAm: 1,
+          datenbzglderlaufendenRente: 1
+        }
+      )
+      .sort({
+        verstorbenAm: 1
+      })
+      .lean();
+
+
+    // -------------------------------------------------
+    // Ergebnis
+    // -------------------------------------------------
+
+    res.status(200).json(
+      persons
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      'Fehler beim Laden der Verstorbenen:',
+      error
+    );
+
+
+    res.status(500).json({
+      message:
+        'Die verstorbenen Personen konnten nicht geladen werden.'
+    });
+
+  }
+
+});
+
+// =====================================================
+// PENSIONSBERICHT - PERSONENGRUPPE EXPORTIEREN
+// =====================================================
+
+router.get(
+  '/reports/pensions/group',
+  async (req, res) => {
+
+    try {
+
+      const { kennung } = req.query;
+
+
+      // =================================================
+      // ERLAUBTE PERSONENGRUPPEN
+      // =================================================
+
+      const allowedKennungen = [
+        'R',
+        'I',
+        'H',
+        'VA',
+        'W',
+        'SONSTIGE'
+      ];
+
+
+      if (
+        !kennung ||
+        !allowedKennungen.includes(kennung)
+      ) {
+
+        return res.status(400).json({
+          message: 'Ungültige Personengruppe.'
+        });
+
+      }
+
+
+      // =================================================
+      // VERSTORBENE ERKENNEN
+      //
+      // Gleiche Logik wie im Pensionsbericht:
+      // verstorben / verst. / Tod usw. ausschließen.
+      // Zusätzlich werden Personen mit verstorbenAm
+      // ausgeschlossen.
+      // =================================================
+
+      const deceasedFilter = {
+
+        $and: [
+
+          {
+            $or: [
+
+              {
+                aktuelleStatusgruppe: {
+                  $exists: false
+                }
+              },
+
+              {
+                aktuelleStatusgruppe: null
+              },
+
+              {
+                aktuelleStatusgruppe: {
+                  $not: /verst|tod|tot|gestorben/i
+                }
+              }
+
+            ]
+          },
+
+          {
+            $or: [
+
+              {
+                verstorbenAm: {
+                  $exists: false
+                }
+              },
+
+              {
+                verstorbenAm: null
+              }
+
+            ]
+          }
+
+        ]
+
+      };
+
+
+      // =================================================
+      // GRUPPENFILTER
+      // =================================================
+
+      let groupFilter;
+
+
+      if (kennung === 'SONSTIGE') {
+
+        /*
+         * Sonstige bedeutet:
+         *
+         * Alle Personen, deren Kennung NICHT einer
+         * bekannten Personengruppe entspricht.
+         *
+         * Dazu gehören beispielsweise:
+         *
+         * - keine Kennung
+         * - null
+         * - leerer String
+         * - unbekannte Kennung
+         */
+
+        groupFilter = {
+
+          $or: [
+
+            {
+              kennung: {
+                $exists: false
+              }
+            },
+
+            {
+              kennung: null
+            },
+
+            {
+              kennung: ''
+            },
+
+            {
+              kennung: {
+                $nin: [
+                  'R',
+                  'I',
+                  'H',
+                  'VA',
+                  'W'
+                ]
+              }
+            }
+
+          ]
+
+        };
+
+      } else {
+
+        // -----------------------------------------------
+        // Normale Personengruppe
+        // -----------------------------------------------
+
+        groupFilter = {
+          kennung: kennung
+        };
+
+      }
+
+
+      // =================================================
+      // GESAMTABFRAGE
+      // =================================================
+
+      const query = {
+
+        $and: [
+
+          groupFilter,
+
+          deceasedFilter
+
+        ]
+
+      };
+
+
+      // =================================================
+      // PERSONEN LADEN
+      // =================================================
+
+      const persons =
+        await Person.find(
+          query,
+          {
+
+            personalnummer: 1,
+
+            name: 1,
+
+            geburtsdatum: 1,
+
+            kennung: 1,
+
+            aktuelleStatusgruppe: 1,
+
+            verstorbenAm: 1,
+
+            datenbzglderlaufendenRente: 1
+
+          }
+        )
+        .sort({
+          name: 1
+        })
+        .lean();
+
+
+      // =================================================
+      // ERGEBNIS
+      // =================================================
+
+      res.status(200).json(
+        persons
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        'Fehler beim Laden der Personengruppe:',
+        error
+      );
+
+
+      res.status(500).json({
+        message:
+          'Die Personengruppe konnte nicht geladen werden.'
+      });
+
+    }
+
+  }
+);
+
+
+
 
 
 

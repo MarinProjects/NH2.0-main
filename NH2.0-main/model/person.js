@@ -98,6 +98,7 @@ const personaldatenZumVerstorbenenAnehoerigenSchema = new mongoose.Schema({
 
 const personenDatenSchema = new mongoose.Schema({
     personalnummer: Number,
+    kennung: { type: String, default: null },
     aktuelleStatusgruppe: {type: String, default: null},
     alteStatusgruppe: { type: String, default: null },
     name: { type: String, default: null },
